@@ -1,0 +1,119 @@
+<?php
+
+namespace App\Entity;
+
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity(repositoryClass="App\Repository\SalleRepository")
+ */
+class Salle
+{
+    /**
+     * @ORM\Id()
+     * @ORM\GeneratedValue()
+     * @ORM\Column(type="integer")
+     */
+    private $id;
+    /**
+     * @ORM\Column(type="string", length=1)
+     */
+    private $batiment;
+    /**
+     * @ORM\Column(type="smallint")
+     */
+    private $etage;
+    /**
+     * @ORM\Column(type="smallint")
+     */
+    private $numero;
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Ordinateur", mappedBy="salle",
+     * cascade="persist")
+     */
+    private $ordinateurs;
+
+    public function __construct()
+    {
+        $this->ordinateurs = new ArrayCollection();
+    }
+    public function __toString()
+    {
+        return $this->getBatiment() . '-' . $this->getEtage() . '.'
+            . $this->getNumero();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getBatiment(): ?string
+    {
+        return $this->batiment;
+    }
+
+    public function setBatiment(string $batiment): self
+    {
+        $this->batiment = $batiment;
+
+        return $this;
+    }
+
+    public function getEtage(): ?int
+    {
+        return $this->etage;
+    }
+
+    public function setEtage(int $etage): self
+    {
+        $this->etage = $etage;
+
+        return $this;
+    }
+
+    public function getNumero(): ?int
+    {
+        return $this->numero;
+    }
+
+    public function setNumero(int $numero): self
+    {
+        $this->numero = $numero;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Ordinateur[]
+     */
+    public function getOrdinateurs(): Collection
+    {
+        return $this->ordinateurs;
+    }
+
+    public function addOrdinateur(Ordinateur $ordinateur): self
+    {
+        if (!$this->ordinateurs->contains($ordinateur)) {
+            $this->ordinateurs[] = $ordinateur;
+            $ordinateur->setSalle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrdinateur(Ordinateur $ordinateur): self
+    {
+        if ($this->ordinateurs->contains($ordinateur)) {
+            $this->ordinateurs->removeElement($ordinateur);
+            // set the owning side to null (unless already changed)
+            if ($ordinateur->getSalle() === $this) {
+                $ordinateur->setSalle(null);
+            }
+        }
+
+        return $this;
+    }
+}

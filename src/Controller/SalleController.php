@@ -9,6 +9,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Event\ModificationEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @Route("/salle")
@@ -28,7 +30,7 @@ class SalleController extends AbstractController
     /**
      * @Route("/new", name="salle_new", methods={"GET","POST"})
      */
-    public function new(Request $request): Response
+    public function new(Request $request, EventDispatcherInterface $dispatcher): Response
     {
         $salle = new Salle();
         $form = $this->createForm(SalleType::class, $salle);
@@ -38,6 +40,10 @@ class SalleController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($salle);
             $entityManager->flush();
+            //add event
+            $event = new ModificationEvent('creation salle ' . $salle);
+            $dispatcher->dispatch($event, 'app.modification');
+
 
             return $this->redirectToRoute('salle_index');
         }
@@ -81,12 +87,15 @@ class SalleController extends AbstractController
     /**
      * @Route("/{id}", name="salle_delete", methods={"DELETE"})
      */
-    public function delete(Request $request, Salle $salle): Response
+    public function delete(Request $request, Salle $salle, EventDispatcherInterface $dispatcher): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$salle->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $salle->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($salle);
             $entityManager->flush();
+            //add event
+            $event = new ModificationEvent('suppression salle ' . $salle);
+            $dispatcher->dispatch($event, 'app.modification');
         }
 
         return $this->redirectToRoute('salle_index');
